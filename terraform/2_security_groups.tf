@@ -23,3 +23,26 @@ resource "aws_security_group" "alb_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+resource "aws_security_group" "ecs_node" {
+  name = "${var.resource_prefix}-ecs-node"
+  vpc_id = "${data.aws_vpc.default_vpc.id}"
+
+  # access from the VPC
+  ingress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = [
+      "10.0.0.0/16"]
+  }
+
+  # outbound internet access
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+}

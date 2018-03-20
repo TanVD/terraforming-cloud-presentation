@@ -9,16 +9,47 @@ resource "aws_key_pair" "ec2_ssh_key" {
   public_key = "${file("../keys/ec2_key.pub")}"
 }
 
+//define standard iam role
+resource "aws_iam_role" "role_ec2_instance" {
+  assume_role_policy = "${data.aws_iam_policy_document.role_ec2_instance_json.json}"
+  name = "${var.resource_prefix}-ec2-instance-role"
+}
+
+data "aws_iam_policy_document" "role_ec2_instance_json" {
+  statement {
+    effect = "Allow"
+    principals {
+      identifiers = ["ec2.amazonaws.com"]
+      type = "Service"
+    }
+    actions = [
+      "sts:AssumeRole"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "instance_role" {
+  role = "${aws_iam_role.role_ec2_instance.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = "${var.resource_prefix}-ec2-instance-profile"
+  role = "${aws_iam_role.role_ec2_instance.name}"
+}
+
+
+
 //P: Define launch configuration itself for your ec2 machines
 //P: This configuration is a template, which can be applied to machine
 //P: We will use it for creation of Auto Scaling Group
 resource "aws_launch_configuration" "ec2_launch_config" {
   name_prefix = "${var.resource_prefix}-launch-configuration"
-  image_id = "ami-4cbe0935"
+  image_id = "${data.aws_ami.ecs.id}"
   instance_type = "t2.micro"
+  iam_instance_profile = "${aws_iam_instance_profile.instance_profile.arn}"
   key_name = "${aws_key_pair.ec2_ssh_key.key_name}"
-  //TODO-tanvd ????
-  security_groups = ["${aws_security_group.alb_security_group.id}"]
+  security_groups = ["${aws_security_group.ecs_node.id}"]
 
   user_data = <<USERDATA
 #!/bin/bash
@@ -49,4 +80,7 @@ resource "aws_autoscaling_group" "default" {
   launch_configuration = "${aws_launch_configuration.ec2_launch_config.id}"
   max_size = "2"
   min_size = "2"
+
+  availability_zones = [ "eu-west-1a", "eu-west-1b"]
+  vpc_zone_identifier = [ "${aws_subnet.first_subnet.id}", "${aws_subnet.second_subnet.id}"]
 }

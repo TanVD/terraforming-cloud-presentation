@@ -42,6 +42,7 @@ resource "aws_ecs_service" "default" {
   placement_constraints {
     type = "distinctInstance"
   }
+
   load_balancer {
     container_name = "${var.resource_prefix}-nginx-task"
     container_port = "80"

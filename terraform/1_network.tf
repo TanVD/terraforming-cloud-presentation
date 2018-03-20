@@ -13,14 +13,16 @@ data "aws_vpc" "default_vpc" {
 //P: avalability zones.
 resource "aws_subnet" "first_subnet" {
   vpc_id = "${data.aws_vpc.default_vpc.id}"
-  cidr_block = "10.10.1.0/24"
+  cidr_block = "10.0.10.0/24"
   map_public_ip_on_launch = true
   availability_zone = "eu-west-1a"
 }
 
 resource "aws_subnet" "second_subnet" {
   vpc_id = "${data.aws_vpc.default_vpc.id}"
-  cidr_block = "10.10.2.0/24"
+  cidr_block = "10.0.20.0/24"
   map_public_ip_on_launch = true
   availability_zone = "eu-west-1b"
 }
+
+//TODO-tanvd manually need to change gateaway because of shared VPC
