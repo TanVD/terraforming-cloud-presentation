@@ -5,6 +5,26 @@ resource "aws_ecs_cluster" "default" {
   name = "${var.resource_prefix}-cluster"
 }
 
+//P: We create standard IAM role for ECS task.
+resource "aws_iam_role" "ecs_task_role" {
+  assume_role_policy = "${data.aws_iam_policy_document.ecs_task_role_json.json}"
+  name = "${var.resource_prefix}-ecs-task-role"
+}
+
+data "aws_iam_policy_document" "ecs_task_role_json" {
+  statement {
+    effect = "Allow"
+    principals {
+      identifiers = ["ecs-tasks.amazonaws.com"]
+      type = "Service"
+    }
+    actions = [
+      "sts:AssumeRole"
+    ]
+  }
+}
+
+
 //P: ECS cluster works with task definitions -- it is definition of task to
 //P: execute. Mostly, it is docker-engine similar definition of task, it's
 //P: requirements to CPU and memory. Note, that task definition defines only
@@ -33,6 +53,11 @@ resource "aws_ecs_task_definition" "default" {
 DEFINITION
 }
 
+//P: Finally, we will create ecs_service. It defines the manner
+//P: task should be executed. ecs_service will automatically restart
+//P: container, if it exits. Basically, ecs_service is used for
+//P: web-servers or any other apps which should run constantly.
+//P: As ecs-service we will deploy nginx.
 resource "aws_ecs_service" "default" {
   name = "${var.resource_prefix}-nginx-service"
   cluster = "${aws_ecs_cluster.default.id}"

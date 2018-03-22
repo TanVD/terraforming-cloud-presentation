@@ -1,10 +1,10 @@
-//P: Next we will create security group. It is a kind of a firewall,
-//P: used by AWS for all instances. Setting up security group you
-//P: provide white lists for network connection in your system.
+//P: Теперь создадим security group. Это своего рода firewall,
+//P: предоставляемый AWS. Добавляя security group к вашему
+//P: ресурсы вы разрешаете или запрещаете некоторый сетевой доступ
+//P: к нему (как правило, работают они как white-list)
 
-//P: We will create security group for alb, which will provide access
-//P: for users from all over the world to port 80 of alb
-
+//P: Мы создадим security group для ALB, которая разрешит доступ
+//P: на alb для всего мира на 80-ый порт
 resource "aws_security_group" "alb_security_group" {
   name = "${var.resource_prefix}-alb-security-group"
   vpc_id = "${data.aws_vpc.default_vpc.id}"
@@ -27,8 +27,8 @@ resource "aws_security_group" "alb_security_group" {
   }
 }
 
-//P: And we will create security group for ecs node, which will provide
-//P: access for resources inside our VPC to each other
+//P: Так же мы создадим security group для ECS инстанса, которая предоставит
+//P: доступ к нашему ECS инстансу всем ресурсам внутри VPC
 resource "aws_security_group" "ecs_node" {
   name = "${var.resource_prefix}-ecs-node"
   vpc_id = "${data.aws_vpc.default_vpc.id}"
